@@ -2,10 +2,8 @@ from flask import Blueprint, json
 from helpers.custom_responses import error_response, success_response
 from services.bill_services import generate_bills
 
-# Create a Blueprint for bill_controller
 bill_routes = Blueprint('bill_routes', __name__)
 
-# Endpoint to generate a bill
 @bill_routes.route('/generate-bill', methods=['POST'])
 def generate():
     try:

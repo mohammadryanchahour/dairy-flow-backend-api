@@ -1,7 +1,6 @@
 from datetime import datetime
 from bson import ObjectId
 from helpers.custom_responses import error_response
-from models.bills import Bills
 from models.transaction import Transaction
 from models.rates import Rates
 
@@ -25,13 +24,6 @@ def create_transaction(delivery, customer):
         transaction.save()
 
         return transaction, None
-
-    except Exception as e:
-        return None, error_response(f"Internal Server Error => {str(e)}", 500)
-    
-    try:
-        transactions = Transaction.objects(customer_id=ObjectId(customer_id)).order_by("transaction_date")
-        return transactions, None
 
     except Exception as e:
         return None, error_response(f"Internal Server Error => {str(e)}", 500)

@@ -45,10 +45,10 @@ def create_bulk_deliveries(payload_list):
     try:
         deliveries = []
         for payload in payload_list:
-            delivery_quantity = int(payload["delivery_quantity"])
-            delivery_date = payload["delivery_date"]
-            customer_id = payload["customer_id"]
-            delivery_address = payload.get("delivery_address")
+            delivery_quantity = int(payload.get("delivery_quantity", 0))
+            delivery_date = payload.get("delivery_date", "")
+            customer_id = payload.get("customer_id", "")
+            delivery_address = payload.get("delivery_address", "")
             
             customer, error = get_customer_by_id(customer_id)
 
@@ -71,6 +71,13 @@ def create_bulk_deliveries(payload_list):
             deliveries.append(delivery)
 
         Delivery.objects.insert(deliveries)
+
+        for delivery in deliveries:
+            transaction, error = create_transaction(delivery, customer)
+
+            if error:
+                deliveries.append({"error": error})
+                continue
 
         return deliveries, None
 
@@ -98,7 +105,28 @@ def get_delivery_by_id(delivery_id):
         return None, error_response(f"Internal Server Error => {str(e)}", 500)
     
 def multiple_delivery_per_day(customer_id, delivery_date):
-    existing_delivery = Delivery.objects(customer_id=ObjectId(customer_id), delivery_date=delivery_date).first()
-    if existing_delivery:
-        return True  
-    return False
+    try:
+        existing_delivery = Delivery.objects(customer_id=ObjectId(customer_id), delivery_date=delivery_date).first()
+        if existing_delivery:
+            return True  
+        return False
+    except Exception as e:
+        return error_response(f"Internal Server Error => {str(e)}", 500)
+
+def update_delivery(delivery_id, payload):
+    try:
+        existing_delivery, error = get_delivery_by_id(delivery_id)
+        if error:
+            return None, error
+        
+        existing_delivery["delivery_quantity"] = payload.get("delivery_quantity", existing_delivery.delivery_quantity)
+        existing_delivery["delivery_address"] = payload.get("delivery_address", existing_delivery.delivery_address)
+        existing_delivery["delivery_date"] = payload.get("delivery_date", existing_delivery.delivery_date)
+        existing_delivery["updated_at"] = datetime.now()
+        
+        existing_delivery.save()
+        
+        return existing_delivery, None
+    
+    except Exception as e:
+        return None, error_response(f"Internal Server Error => {str(e)}", 500)

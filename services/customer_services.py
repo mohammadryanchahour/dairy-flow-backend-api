@@ -50,7 +50,6 @@ def get_all_customers():
     
 def get_customer_by_id(customer_id):
     try:
-        # Ensure customer_id is a valid ObjectId before querying
         if not ObjectId.is_valid(customer_id):
             return None, error_response("Invalid customer ID", 400)
         
@@ -66,7 +65,6 @@ def get_customer_by_id(customer_id):
 
 def update_customer(customer_id, payload):
     try:
-        # Retrieve the existing customer from the database
         existing_customer, error = get_customer_by_id(customer_id)
         if error:
             return None, error
@@ -92,7 +90,6 @@ def update_customer(customer_id, payload):
 
 def update_customer_position(customer_id, new_position):
     try:
-        # Retrieve the existing customer from the database
         existing_customer, error = get_customer_by_id(customer_id)
         if error:
             return None, error
@@ -104,7 +101,6 @@ def update_customer_position(customer_id, new_position):
 
         shift = 1 if new_position < current_position else -1
 
-        # Retrieve the list of customers affected by the movement
         if new_position < current_position:
             affected_customers = Customer.objects(position__lt=current_position, position__gte=new_position)
         else:
@@ -116,31 +112,9 @@ def update_customer_position(customer_id, new_position):
             customer.save()
 
         existing_customer["position"] = new_position
-        customer["updated_at"] = datetime.now()
         existing_customer.save()
 
         return existing_customer, None
 
     except Exception as e:
         return None, error_response(f"Internal Server Error => {str(e)}", 500)
-
-
-def get_filtered_customers(filters):
-    try:
-        query = construct_query(filters)
-        customers = Customer.objects(__raw__=query)
-        return customers, None
-    except Exception as e:
-        return None, str(e)
-
-
-def construct_query(filters):
-    query = {}
-    search_query = filters.get('query')
-    filter_types = filters.get('type', [])
-    
-    if search_query:
-        query['$or'] = [{filter_type: {'$regex': search_query, '$options': 'i'}} for filter_type in filter_types]
-    
-    return query
-
