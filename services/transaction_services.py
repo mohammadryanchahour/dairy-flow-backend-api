@@ -27,3 +27,22 @@ def create_transaction(delivery, customer):
 
     except Exception as e:
         return None, error_response(f"Internal Server Error => {str(e)}", 500)
+    
+def get_all_transactions():
+    try:
+        transactions = Transaction.objects().order_by("transaction_date")
+        return transactions, None
+    
+    except Exception as e:
+        return None, error_response(f"Internal Server Error => {str(e)}", 500)
+    
+def get_transaction_by_id(transaction_id):
+    try:
+        transaction = Transaction.objects(id=ObjectId(transaction_id)).first()
+        
+        if transaction:
+            return transaction, None
+        return None, error_response("Transaction not found", 404)
+    
+    except Exception as e:
+        return None, error_response(f"Internal Server Error => {str(e)}", 500)
