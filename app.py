@@ -3,6 +3,7 @@ from flask import Flask, jsonify
 from controllers.customer_controller import customer_routes
 from controllers.delivery_controller import delivery_routes
 from controllers.bill_controller import bill_routes
+from controllers.transaction_controller import transaction_routes
 from mongoengine import connect
 
 mongo_uri = os.getenv("MONGO_DB_URI")
@@ -14,7 +15,9 @@ connect(host=mongo_uri)
 # Routes Registration
 app.register_blueprint(customer_routes, url_prefix="/api")
 app.register_blueprint(delivery_routes, url_prefix="/api")
+app.register_blueprint(transaction_routes, url_prefix="/api")
 app.register_blueprint(bill_routes, url_prefix="/api")
+
 
 @app.route('/health')
 def health_check():
